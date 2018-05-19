@@ -15,7 +15,6 @@
 */
 package com.sothawo.twilikt
 
-import com.sothawo.twilikt.twitter.TwitterService
 import com.vaadin.server.VaadinRequest
 import com.vaadin.spring.annotation.SpringUI
 import com.vaadin.ui.Button
@@ -30,12 +29,20 @@ import org.slf4j.Logger
 class MainUI(val twitterService: TwitterService) : UI() {
 
     override fun init(request: VaadinRequest?) {
-        content = Button("Click me") { _ -> Notification.show(twitterService.twitterConfiguration.toString()) }
+        content = Button("Click me") { _ ->
+            run {
+                try {
+                    Notification.show(twitterService.currentUser().toString())
+                } catch (e: Exception) {
+                    Notification.show(e.message, Notification.Type.ERROR_MESSAGE)
+                }
+            }
+        }
         log.info("MainUI initialized")
     }
+
     companion object {
         @Slf4jLogger
         lateinit var log: Logger
     }
-
 }
