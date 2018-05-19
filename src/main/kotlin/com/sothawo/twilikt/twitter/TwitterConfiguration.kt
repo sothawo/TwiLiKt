@@ -26,11 +26,15 @@ class TwitterConfiguration {
     var oauthConsumerSecret = "not set"
     var oauthAccessKey = "not set"
     var oauthAccessSecret = "not set"
+    var user = "not set"
 
     override fun toString(): String {
-        return "TwitterConfiguration(oauthConsumerKey='$oauthConsumerKey', oauthConsumerSecret='$oauthConsumerSecret', " +
-                "oauthAccessKey='$oauthAccessKey', oauthAccessSecret='$oauthAccessSecret')"
+        return "TwitterConfiguration(" +
+                "oauthConsumerKey='$oauthConsumerKey'," +
+                "oauthConsumerSecret='$oauthConsumerSecret'," +
+                "oauthAccessKey='$oauthAccessKey'," +
+                "oauthAccessSecret='$oauthAccessSecret'," +
+                "user='$user'" +
+                ")"
     }
-
-
 }
