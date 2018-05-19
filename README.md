@@ -14,6 +14,6 @@ this is a Spring Boot application using Vaadin and is written in Kotlin. Access 
 
 # build
 
-[![Build Status](https://travis-ci.org/sothawo/TwiLiKt.svg?branch=master)](https://travis-ci.org/sothawo/Twilikt) 
+[![Build Status](https://travis-ci.org/sothawo/TwiLiKt.svg?branch=master)](https://travis-ci.org/sothawo/TwiLiKt) 
 
 the application is built using maven 
