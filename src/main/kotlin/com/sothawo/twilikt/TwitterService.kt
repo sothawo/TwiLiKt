@@ -63,12 +63,10 @@ class TwitterService(val config: Configuration) {
                 .build()).instance
     }
 
-    fun currentUser(): User {
-        return getUser(twitter.id)
-    }
+    fun currentUser() = getUser(twitter.id)
 
-    fun getUser(id: Long): User {
-        return twitter.showUser(id)!!.let { User(id, it.screenName, it.name) }
+    fun getUser(id: Long) = twitter.showUser(id)!!.let {
+        User(id, it.screenName, it.name)
     }
 
     @PostConstruct
