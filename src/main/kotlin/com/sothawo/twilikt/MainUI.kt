@@ -21,6 +21,7 @@ import com.vaadin.spring.annotation.SpringUI
 import com.vaadin.ui.Button
 import com.vaadin.ui.Notification
 import com.vaadin.ui.UI
+import org.slf4j.Logger
 
 /**
  * @author P.J. Meisch (pj.meisch@sothawo.com)
@@ -30,5 +31,11 @@ class MainUI(val twitterService: TwitterService) : UI() {
 
     override fun init(request: VaadinRequest?) {
         content = Button("Click me") { _ -> Notification.show(twitterService.twitterConfiguration.toString()) }
+        log.info("MainUI initialized")
     }
+    companion object {
+        @Slf4jLogger
+        lateinit var log: Logger
+    }
+
 }
