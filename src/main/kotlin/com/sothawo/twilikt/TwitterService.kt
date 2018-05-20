@@ -51,11 +51,11 @@ class TwitterConfiguration {
 @Service
 class TwitterService(private val twitter: Twitter) {
 
-    fun currentUser() = userWithId(twitter.id)
+    fun currentUser(): User = userWithId(twitter.id).also { log.debug("current user: $it") }
 
     fun userWithId(id: Long): User {
-        val showUser = twitter.showUser(id)
-        return showUser!!.let {
+        log.debug("retrieving user with id $id")
+        return twitter.showUser(id)!!.let {
             User(id, it.screenName, it.name)
         }
     }

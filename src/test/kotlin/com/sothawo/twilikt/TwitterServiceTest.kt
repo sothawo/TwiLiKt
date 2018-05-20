@@ -40,7 +40,7 @@ internal class TwitterServiceTest {
 
         @BeforeEach
         fun resetMock() {
-            // need to reset, can't recreta as the bean is created by Spring
+            // need to reset, can't recreate as the bean is created by Spring
             reset(twitter4j)
             // when is a kotlin keyword
             `when`(twitter4j.id).thenReturn(user.id)
