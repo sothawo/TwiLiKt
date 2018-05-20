@@ -29,8 +29,7 @@ import org.slf4j.Logger
 @Push
 class MainUI(val twitterService: TwitterService) : UI() {
 
-    private val grid = gridComponent()
-
+    val gridPanel = GridPanel()
 
     override fun init(request: VaadinRequest?) {
         content = VerticalLayout().apply {
@@ -43,19 +42,10 @@ class MainUI(val twitterService: TwitterService) : UI() {
                         Label("could not retrieve user: ${e.message}")
                     }
 
-            addComponents(userPanel, grid, buttonComponent())
-            setExpandRatio(grid, 1F)
+            addComponents(userPanel, gridPanel, buttonComponent())
+            setExpandRatio(gridPanel, 1F)
         }
         log.info("MainUI initialized")
-    }
-
-    /**
-     * [Component] displaying the followed users.
-     */
-    private fun gridComponent(): Component {
-        return Grid<User>().apply {
-            setSizeFull()
-        }
     }
 
     // test grid with a button
@@ -65,6 +55,7 @@ class MainUI(val twitterService: TwitterService) : UI() {
                 val friends = twitterService.loadFriends(twitterService.currentUser())
                 friends.forEach { log.debug("friend: $it") }
                 notification("loaded ${friends.size} friends")
+                gridPanel.setItems(friends.map(::GridData))
             } catch (e: Exception) {
                 notification(e.message ?: "unknown error", Notification.Type.ERROR_MESSAGE)
             }
