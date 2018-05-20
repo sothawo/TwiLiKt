@@ -56,7 +56,7 @@ class TwitterService(private val twitter: Twitter) {
     fun userWithId(id: Long): User {
         log.debug("retrieving user with id $id")
         return twitter.showUser(id)!!.let {
-            User(id, it.screenName, it.name)
+            User(it.id, it.screenName, it.name)
         }
     }
 

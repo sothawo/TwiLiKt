@@ -2,6 +2,8 @@
 
 a small application to manage twitter user lists.
 
+**WIP everything still in progress and totally incomplete**
+
 # twitter access
 
 for the beginning the application need consumer key and secrets and application key and secrets to be configured and 
