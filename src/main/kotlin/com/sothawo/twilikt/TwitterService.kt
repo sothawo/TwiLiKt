@@ -15,26 +15,26 @@
 */
 package com.sothawo.twilikt
 
-import com.vaadin.spring.annotation.UIScope
 import org.slf4j.Logger
 import org.springframework.boot.context.properties.ConfigurationProperties
+import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.Configuration
 import org.springframework.stereotype.Service
 import twitter4j.Twitter
 import twitter4j.TwitterFactory
 import twitter4j.conf.ConfigurationBuilder
-import javax.annotation.PostConstruct
 
 /**
  * service configuration class.
  */
 @ConfigurationProperties("twitter")
-class Configuration {
+class TwitterConfiguration {
     var oauthConsumerKey = "not set"
     var oauthConsumerSecret = "not set"
     var oauthAccessToken = "not set"
     var oauthAccessTokenSecret = "not set"
     override fun toString(): String {
-        return "Configuration(" +
+        return "TwitterConfiguration(" +
                 "oauthConsumerKey='$oauthConsumerKey'," +
                 "oauthConsumerSecret='$oauthConsumerSecret'," +
                 "oauthAccessToken='$oauthAccessToken'," +
@@ -49,11 +49,30 @@ class Configuration {
  * @author P.J. Meisch (pj.meisch@sothawo.com)
  */
 @Service
-@UIScope
-class TwitterService(val config: Configuration) {
-    private val twitter: Twitter = setupTwitter()
+class TwitterService(private val twitter: Twitter) {
 
-    private fun setupTwitter(): Twitter {
+    fun currentUser() = userWithId(twitter.id)
+
+    fun userWithId(id: Long): User {
+        val showUser = twitter.showUser(id)
+        return showUser!!.let {
+            User(id, it.screenName, it.name)
+        }
+    }
+
+    companion object {
+        @Slf4jLogger
+        lateinit var log: Logger
+    }
+}
+
+/**
+ * configuration class providing the Twitter Bean.
+ */
+@Configuration
+class TwitterProvider(private val config: TwitterConfiguration) {
+    @Bean
+    fun realTwitter(): Twitter {
         return TwitterFactory(ConfigurationBuilder()
                 .setDebugEnabled(false)
                 .setOAuthConsumerKey(config.oauthConsumerKey)
@@ -61,26 +80,6 @@ class TwitterService(val config: Configuration) {
                 .setOAuthAccessToken(config.oauthAccessToken)
                 .setOAuthAccessTokenSecret(config.oauthAccessTokenSecret)
                 .build()).instance
-    }
-
-    fun currentUser() = getUser(twitter.id)
-
-    fun getUser(id: Long) = twitter.showUser(id)!!.let {
-        User(id, it.screenName, it.name)
-    }
-
-    @PostConstruct
-    fun postConstruct() {
-        try {
-            log.info("Twitter initialized for ${getUser(twitter.id)}.")
-        } catch (e: Exception) {
-            log.error("error initializing Twitter", e)
-        }
-    }
-
-    companion object {
-        @Slf4jLogger
-        lateinit var log: Logger
     }
 }
 
