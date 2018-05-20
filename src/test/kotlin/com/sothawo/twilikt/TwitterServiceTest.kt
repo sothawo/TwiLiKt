@@ -32,7 +32,7 @@ internal class TwitterServiceTest {
     lateinit var twitter4j: Twitter
 
     // the default user
-    val user = User(4711, "johndoe", "John Doe", "")
+    val user = User(4711, "johndoe", "John Doe", "http://image.ugly")
 
     @Nested
     @DisplayName("a TwitterService")
@@ -49,6 +49,7 @@ internal class TwitterServiceTest {
             `when`(twitterUser.id).thenReturn(user.id)
             `when`(twitterUser.name).thenReturn(user.name)
             `when`(twitterUser.screenName).thenReturn(user.screenName)
+            `when`(twitterUser.profileImageURLHttps).thenReturn(user.profileImageUrl)
             `when`(twitter4j.showUser(user.id)).thenReturn(twitterUser)
         }
 
