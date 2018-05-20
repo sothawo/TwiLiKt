@@ -54,10 +54,32 @@ class TwitterService(private val twitter: Twitter) {
     fun currentUser(): User = userWithId(twitter.id).also { log.debug("current user: $it") }
 
     fun userWithId(id: Long): User {
-        log.debug("retrieving user with id $id")
+        log.debug("retrieving user with id $id...")
         return twitter.showUser(id)!!.let {
             User(it.id, it.screenName, it.name, it.profileImageURLHttps)
         }
+    }
+
+    fun loadFriends(user: User): List<User> {
+        log.debug("retrieving friends for @${user.name}...")
+        val friends = mutableListOf<User>()
+        twitter.showUser(user.id)!!.run {
+            log.debug("number of friends: $friendsCount")
+
+            var cursor: Long = 0
+            var keepGoing = true
+            do {
+                twitter.getFriendsList(id, cursor, 200)
+                        .apply {
+                            stream()
+                                    .filter { it != null }
+                                    .forEach { friends += User(it.id, it.screenName, it.name, it.profileImageURLHttps) }
+                            cursor = nextCursor
+                            keepGoing = hasNext()
+                        }
+            } while (keepGoing)
+        }
+        return friends.toList()
     }
 
     companion object {

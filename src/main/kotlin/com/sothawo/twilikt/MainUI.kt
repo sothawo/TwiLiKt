@@ -15,15 +15,18 @@
 */
 package com.sothawo.twilikt
 
+import com.vaadin.annotations.Push
 import com.vaadin.server.VaadinRequest
 import com.vaadin.spring.annotation.SpringUI
 import com.vaadin.ui.*
+import kotlinx.coroutines.experimental.launch
 import org.slf4j.Logger
 
 /**
  * @author P.J. Meisch (pj.meisch@sothawo.com)
  */
 @SpringUI
+@Push
 class MainUI(val twitterService: TwitterService) : UI() {
 
     private val grid = gridComponent()
@@ -57,13 +60,19 @@ class MainUI(val twitterService: TwitterService) : UI() {
 
     // test grid with a button
     private fun buttonComponent(): Component = Button("Click me") { _ ->
-        run {
+        launch {
             try {
-                Notification.show(twitterService.currentUser().toString())
+                val friends = twitterService.loadFriends(twitterService.currentUser())
+                friends.forEach { log.debug("friend: $it") }
+                notification("loaded ${friends.size} friends")
             } catch (e: Exception) {
-                Notification.show(e.message, Notification.Type.ERROR_MESSAGE)
+                notification(e.message ?: "unknown error", Notification.Type.ERROR_MESSAGE)
             }
         }
+    }
+
+    private fun notification(msg: String, type: Notification.Type = Notification.Type.HUMANIZED_MESSAGE) {
+        access { Notification.show(msg, type) }
     }
 
     companion object {
