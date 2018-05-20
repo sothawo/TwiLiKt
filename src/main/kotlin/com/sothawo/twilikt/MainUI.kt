@@ -16,10 +16,9 @@
 package com.sothawo.twilikt
 
 import com.vaadin.server.VaadinRequest
+import com.vaadin.shared.ui.ContentMode
 import com.vaadin.spring.annotation.SpringUI
-import com.vaadin.ui.Button
-import com.vaadin.ui.Notification
-import com.vaadin.ui.UI
+import com.vaadin.ui.*
 import org.slf4j.Logger
 
 /**
@@ -28,17 +27,53 @@ import org.slf4j.Logger
 @SpringUI
 class MainUI(val twitterService: TwitterService) : UI() {
 
+    private val grid = gridComponent()
+
+
     override fun init(request: VaadinRequest?) {
-        content = Button("Click me") { _ ->
-            run {
-                try {
-                    Notification.show(twitterService.currentUser().toString())
-                } catch (e: Exception) {
-                    Notification.show(e.message, Notification.Type.ERROR_MESSAGE)
-                }
-            }
+        content = VerticalLayout().apply {
+            setSizeFull()
+            addComponents(userComponent(), grid, buttonComponent())
+            setExpandRatio(grid, 1F)
         }
         log.info("MainUI initialized")
+    }
+
+    /**
+     * [Component] displaying the current user.
+     */
+    private fun userComponent(): Component {
+        return HorizontalLayout().apply {
+            val text: String =
+                    try {
+                        twitterService.currentUser().let {
+                            "<b>${it.name}</b> @${it.screenName}"
+                        }
+                    } catch (e: Exception) {
+                        e.message ?: "unknown error, ${e.javaClass.canonicalName}"
+                    }
+            addComponent(Label(text, ContentMode.HTML))
+        }
+    }
+
+    /**
+     * [Component] displaying the followed users.
+     */
+    private fun gridComponent(): Component {
+        return Grid<User>().apply {
+            setSizeFull()
+        }
+    }
+
+    // test grid with a button
+    private fun buttonComponent(): Component = Button("Click me") { _ ->
+        run {
+            try {
+                Notification.show(twitterService.currentUser().toString())
+            } catch (e: Exception) {
+                Notification.show(e.message, Notification.Type.ERROR_MESSAGE)
+            }
+        }
     }
 
     companion object {
