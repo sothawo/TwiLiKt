@@ -16,7 +16,6 @@
 package com.sothawo.twilikt
 
 import com.vaadin.server.VaadinRequest
-import com.vaadin.shared.ui.ContentMode
 import com.vaadin.spring.annotation.SpringUI
 import com.vaadin.ui.*
 import org.slf4j.Logger
@@ -33,27 +32,18 @@ class MainUI(val twitterService: TwitterService) : UI() {
     override fun init(request: VaadinRequest?) {
         content = VerticalLayout().apply {
             setSizeFull()
-            addComponents(userComponent(), grid, buttonComponent())
+
+            val userPanel =
+                    try {
+                        UserPanel(twitterService.currentUser())
+                    } catch (e: Exception) {
+                        Label("could not retrieve user: ${e.message}")
+                    }
+
+            addComponents(userPanel, grid, buttonComponent())
             setExpandRatio(grid, 1F)
         }
         log.info("MainUI initialized")
-    }
-
-    /**
-     * [Component] displaying the current user.
-     */
-    private fun userComponent(): Component {
-        return HorizontalLayout().apply {
-            val text: String =
-                    try {
-                        twitterService.currentUser().let {
-                            "<b>${it.name}</b> @${it.screenName}"
-                        }
-                    } catch (e: Exception) {
-                        e.message ?: "unknown error, ${e.javaClass.canonicalName}"
-                    }
-            addComponent(Label(text, ContentMode.HTML))
-        }
     }
 
     /**

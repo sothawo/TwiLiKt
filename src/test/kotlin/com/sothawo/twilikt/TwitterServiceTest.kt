@@ -32,7 +32,7 @@ internal class TwitterServiceTest {
     lateinit var twitter4j: Twitter
 
     // the default user
-    val user = User(4711, "johndoe", "John Doe")
+    val user = User(4711, "johndoe", "John Doe", "")
 
     @Nested
     @DisplayName("a TwitterService")
