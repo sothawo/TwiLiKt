@@ -33,6 +33,7 @@ import org.slf4j.Logger
 class MainUI(val twitterService: TwitterService) : UI() {
 
     val gridPanel = GridPanel()
+    val statusLine = Label();
 
     override fun init(request: VaadinRequest?) {
         content = VerticalLayout().apply {
@@ -45,11 +46,11 @@ class MainUI(val twitterService: TwitterService) : UI() {
                         Label("could not retrieve user: ${e.message}")
                     }
 
-            addComponents(userPanel, gridPanel)
+            addComponents(userPanel, gridPanel, statusLine)
             setExpandRatio(gridPanel, 1F)
         }
         log.info("MainUI initialized")
-        log.info("start loading friends")
+        showStatus("start loading friends")
         loadFriends()
     }
 
@@ -61,7 +62,7 @@ class MainUI(val twitterService: TwitterService) : UI() {
             try {
                 val friends = twitterService.loadFriends(twitterService.currentUser())
                 friends.forEach { log.debug("friend: $it") }
-                notification("loaded ${friends.size} friends")
+                showStatus("loaded ${friends.size} friends")
                 access { gridPanel.setItems(friends.map(::GridData)) }
             } catch (e: Exception) {
                 notification(e.message ?: "unknown error", Notification.Type.ERROR_MESSAGE)
@@ -69,8 +70,19 @@ class MainUI(val twitterService: TwitterService) : UI() {
         }
     }
 
+    /**
+     * shows a notification with the [msg] text and type [type]. Uses the UI thread.
+     */
     private fun notification(msg: String, type: Notification.Type = Notification.Type.TRAY_NOTIFICATION) {
         access { Notification.show(msg, type) }
+    }
+
+    /**
+     * show the [msg] ins the [statusLine] and logs it. Uses the UI thread.
+     */
+    fun showStatus(msg: String) {
+        access { statusLine.value = msg }
+        log.info(msg)
     }
 
     companion object {
