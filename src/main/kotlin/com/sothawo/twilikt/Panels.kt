@@ -3,7 +3,8 @@ package com.sothawo.twilikt
 import com.vaadin.server.ExternalResource
 import com.vaadin.shared.ui.ContentMode
 import com.vaadin.ui.*
-import com.vaadin.ui.renderers.ComponentRenderer
+import com.vaadin.ui.renderers.HtmlRenderer
+import com.vaadin.ui.renderers.ImageRenderer
 
 /**
  * a [Panel] to display a [user]. The panel has the users image, the screen name and name
@@ -12,7 +13,7 @@ import com.vaadin.ui.renderers.ComponentRenderer
 class UserPanel(private val user: User) : Panel() {
     init {
         val image = Image().apply { source = ExternalResource(user.profileImageUrl) }
-        val names = Label("<b>${user.name}</b> @${user.screenName}", ContentMode.HTML)
+        val names = Label(user.htmlName(), ContentMode.HTML)
 
         content = HorizontalLayout().apply {
             addComponents(image, names)
@@ -25,16 +26,22 @@ class UserPanel(private val user: User) : Panel() {
 /**
  * [Panel] to display the friends and their list memeberships.
  */
-class GridPanel() : Panel() {
+class GridPanel : Panel() {
     private var grid = Grid<GridData>().apply {
         setSizeFull()
         bodyRowHeight = 50.0
-        addColumn({ UserPanel(it.user) },
-                ComponentRenderer()).apply {
-            caption = "following"
-            //            setWidth("25%")
-            setResizable(true)
+
+        addColumn({ it -> ExternalResource(it.user.profileImageUrl) }, ImageRenderer())
+                .apply {
+                    width = 80.0
+                    setSortable(false)
+                }
+        val nameColumn = addColumn({ it -> it.user.htmlName() }, HtmlRenderer()).apply {
+            setExpandRatio(1)
         }
+        setSelectionMode(Grid.SelectionMode.SINGLE)
+        sort(nameColumn)
+
     }
 
     init {

@@ -109,3 +109,5 @@ class TwitterProvider(private val config: TwitterConfiguration) {
  * custom user class
  */
 data class User(val id: Long, val screenName: String, val name: String, val profileImageUrl: String)
+
+fun User.htmlName() = "<b>${name}</b> @${screenName}"

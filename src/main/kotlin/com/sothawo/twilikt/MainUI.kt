@@ -18,7 +18,10 @@ package com.sothawo.twilikt
 import com.vaadin.annotations.Push
 import com.vaadin.server.VaadinRequest
 import com.vaadin.spring.annotation.SpringUI
-import com.vaadin.ui.*
+import com.vaadin.ui.Label
+import com.vaadin.ui.Notification
+import com.vaadin.ui.UI
+import com.vaadin.ui.VerticalLayout
 import kotlinx.coroutines.experimental.launch
 import org.slf4j.Logger
 
@@ -42,27 +45,31 @@ class MainUI(val twitterService: TwitterService) : UI() {
                         Label("could not retrieve user: ${e.message}")
                     }
 
-            addComponents(userPanel, gridPanel, buttonComponent())
+            addComponents(userPanel, gridPanel)
             setExpandRatio(gridPanel, 1F)
         }
         log.info("MainUI initialized")
+        log.info("start loading friends")
+        loadFriends()
     }
 
-    // test grid with a button
-    private fun buttonComponent(): Component = Button("Click me") { _ ->
+    /**
+     * loads the friends (the user is following) to the [gridPanel] async using a coroutine.
+     */
+    private fun loadFriends() {
         launch {
             try {
                 val friends = twitterService.loadFriends(twitterService.currentUser())
                 friends.forEach { log.debug("friend: $it") }
                 notification("loaded ${friends.size} friends")
-                gridPanel.setItems(friends.map(::GridData))
+                access { gridPanel.setItems(friends.map(::GridData)) }
             } catch (e: Exception) {
                 notification(e.message ?: "unknown error", Notification.Type.ERROR_MESSAGE)
             }
         }
     }
 
-    private fun notification(msg: String, type: Notification.Type = Notification.Type.HUMANIZED_MESSAGE) {
+    private fun notification(msg: String, type: Notification.Type = Notification.Type.TRAY_NOTIFICATION) {
         access { Notification.show(msg, type) }
     }
 
