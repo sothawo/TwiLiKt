@@ -27,7 +27,7 @@ class UserPanel(private val user: User) : Panel() {
  * [Panel] to display the friends and their list memeberships.
  */
 class GridPanel : Panel() {
-    private var grid = Grid<GridData>().apply {
+    private var grid = Grid<GridEntry>().apply {
         setSizeFull()
         bodyRowHeight = 50.0
 
@@ -49,9 +49,15 @@ class GridPanel : Panel() {
         setSizeFull()
     }
 
-    fun setItems(gridDatas: List<GridData>) {
-        grid.setItems(gridDatas)
+    fun setGridData(gridData: GridData) {
+        grid.setItems(gridData.users.map(::GridEntry))
     }
 }
 
-data class GridData(val user: User)
+class GridData(val users: List<User>, val userLists: List<UserList>) {
+    fun statusInfo(): String {
+        return "${users.size} friends, ${userLists.size} lists"
+    }
+}
+
+data class GridEntry(val user: User)

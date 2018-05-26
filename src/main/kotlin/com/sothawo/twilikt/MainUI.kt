@@ -22,7 +22,8 @@ import com.vaadin.ui.Label
 import com.vaadin.ui.Notification
 import com.vaadin.ui.UI
 import com.vaadin.ui.VerticalLayout
-import kotlinx.coroutines.experimental.launch
+import kotlinx.coroutines.experimental.async
+import kotlinx.coroutines.experimental.runBlocking
 import org.slf4j.Logger
 
 /**
@@ -51,23 +52,43 @@ class MainUI(val twitterService: TwitterService) : UI() {
         }
         log.info("MainUI initialized")
         showStatus("start loading friends")
-        loadFriends()
+        loadData()
     }
 
     /**
-     * loads the friends (the user is following) to the [gridPanel] async using a coroutine.
+     * loads the data - friends (the user is following) - and sends it to the [gridPanel] async. data is loaded using
+     * coroutines.
      */
-    private fun loadFriends() {
-        launch {
+    private fun loadData() = runBlocking<Unit> {
+
+        // load the friends
+        val friendsJob = async {
             try {
                 val friends = twitterService.loadFriends(twitterService.currentUser())
-                friends.forEach { log.debug("friend: $it") }
-                showStatus("loaded ${friends.size} friends")
-                access { gridPanel.setItems(friends.map(::GridData)) }
+                log.info("loaded ${friends.size} friends")
+                friends
             } catch (e: Exception) {
                 notification(e.message ?: "unknown error", Notification.Type.ERROR_MESSAGE)
+                emptyList<User>()
             }
         }
+
+        // load the users's lists
+        val listsJob = async {
+            try {
+                val userLists = twitterService.loadUserLists(twitterService.currentUser())
+                log.info("loaded ${userLists.size} lists")
+                userLists
+            } catch (e: Exception) {
+                notification(e.message ?: "unknown error", Notification.Type.ERROR_MESSAGE)
+                emptyList<UserList>()
+            }
+        }
+
+        // set the data in the gridPanel
+        val gridData = GridData(friendsJob.await(), listsJob.await())
+        access { gridPanel.setGridData(gridData) }
+        showStatus("loaded grid data: ${gridData.statusInfo()}")
     }
 
     /**

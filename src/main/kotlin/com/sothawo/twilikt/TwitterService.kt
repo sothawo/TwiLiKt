@@ -60,26 +60,74 @@ class TwitterService(private val twitter: Twitter) {
         }
     }
 
+    /**
+     * loads the friends for the given [user].
+     */
     fun loadFriends(user: User): List<User> {
-        log.debug("retrieving friends for @${user.name}...")
+        log.debug("retrieving friends for @${user.screenName}...")
         val friends = mutableListOf<User>()
-        twitter.showUser(user.id)!!.run {
-            log.debug("number of friends: $friendsCount")
 
-            var cursor: Long = 0
-            var keepGoing = true
-            do {
-                twitter.getFriendsList(id, cursor, 200)
+        var cursor = 0L
+        var keepGoing = true
+        do {
+            try {
+                twitter.getFriendsList(user.id, cursor, 200)
                         .apply {
-                            stream()
-                                    .filter { it != null }
+                            toList().filterNotNull()
                                     .forEach { friends += User(it.id, it.screenName, it.name, it.profileImageURLHttps) }
                             cursor = nextCursor
                             keepGoing = hasNext()
                         }
-            } while (keepGoing)
-        }
+            } catch (e: Exception) {
+                log.warn("error retrieving friends for user $user", e)
+                keepGoing = false
+            }
+        } while (keepGoing)
         return friends.toList()
+    }
+
+    /**
+     * loads the [UserList]s for the given [user].
+     */
+    fun loadUserLists(user: User): List<UserList> {
+        log.debug("retrieving lists for @${user.screenName}")
+        return try {
+            twitter.getUserLists(user.id)
+                    .toList().filterNotNull()
+                    .map { it: twitter4j.UserList ->
+                        UserList(it.id, it.name, loadUserIdsForList(it.id))
+                    }
+        } catch (ex: Exception) {
+            log.warn("could not load user lists for $user", ex)
+            emptyList()
+        }
+    }
+
+    private fun loadUserIdsForList(listId: Long): List<Long> {
+        log.debug("retrieving users for list with id $listId")
+        val users = mutableListOf<User>()
+
+        // getUserListMembers starts paging with -1
+        var cursor = -1L
+        var keepGoing = true
+        do {
+            try {
+                twitter.getUserListMembers(listId, 5_000, cursor)
+                        .apply {
+                            toList().filterNotNull()
+                                    .forEach { users += User(it.id, it.screenName, it.name, it.profileImageURLHttps) }
+                            cursor = nextCursor
+                            keepGoing = hasNext()
+                        }
+
+            } catch (e: Exception) {
+                log.warn("error getting users for list id $listId", e)
+                keepGoing = false
+            }
+
+        } while (keepGoing)
+
+        return users.map(User::id)
     }
 
     companion object {
@@ -110,4 +158,6 @@ class TwitterProvider(private val config: TwitterConfiguration) {
  */
 data class User(val id: Long, val screenName: String, val name: String, val profileImageUrl: String)
 
-fun User.htmlName() = "<b>${name}</b> @${screenName}"
+fun User.htmlName() = "<b>$name</b> @$screenName"
+
+data class UserList(val id: Long, val name: String, val userIds: List<Long>)
