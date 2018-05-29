@@ -95,7 +95,7 @@ class TwitterService(private val twitter: Twitter) {
             twitter.getUserLists(user.id)
                     .toList().filterNotNull()
                     .map { it: twitter4j.UserList ->
-                        UserList(it.id, it.name, loadUserIdsForList(it.id))
+                        UserList(it.id, it.name, loadUserIdsForList(it.id).toMutableList())
                     }
         } catch (ex: Exception) {
             log.warn("could not load user lists for $user", ex)
@@ -160,4 +160,4 @@ data class User(val id: Long, val screenName: String, val name: String, val prof
 
 fun User.htmlName() = "<b>$name</b> @$screenName"
 
-data class UserList(val id: Long, val name: String, val userIds: List<Long>)
+data class UserList(val id: Long, val name: String, val userIds: MutableList<Long>)

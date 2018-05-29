@@ -33,8 +33,10 @@ import org.slf4j.Logger
 @Push
 class MainUI(val twitterService: TwitterService) : UI() {
 
-    val gridPanel = GridPanel()
-    val statusLine = Label();
+    val bottomPanel = BottomPanel { saveData() }
+
+    val gridPanel = GridPanel { bottomPanel.button.isEnabled = true }
+
 
     override fun init(request: VaadinRequest?) {
         content = VerticalLayout().apply {
@@ -47,7 +49,7 @@ class MainUI(val twitterService: TwitterService) : UI() {
                         Label("could not retrieve user: ${e.message}")
                     }
 
-            addComponents(userPanel, gridPanel, statusLine)
+            addComponents(userPanel, gridPanel, bottomPanel)
             setExpandRatio(gridPanel, 1F)
         }
         log.info("MainUI initialized")
@@ -59,7 +61,7 @@ class MainUI(val twitterService: TwitterService) : UI() {
      * loads the data - friends (the user is following) - and sends it to the [gridPanel] async. data is loaded using
      * coroutines.
      */
-    private fun loadData() = runBlocking<Unit> {
+    private fun loadData() = runBlocking {
 
         // load the friends
         val friendsJob = async {
@@ -91,6 +93,12 @@ class MainUI(val twitterService: TwitterService) : UI() {
         showStatus("loaded grid data: ${gridData.statusInfo()}")
     }
 
+    private fun saveData() {
+        bottomPanel.button.isEnabled = false
+        showStatus("should save data")
+    }
+
+
     /**
      * shows a notification with the [msg] text and type [type]. Uses the UI thread.
      */
@@ -102,7 +110,7 @@ class MainUI(val twitterService: TwitterService) : UI() {
      * show the [msg] ins the [statusLine] and logs it. Uses the UI thread.
      */
     fun showStatus(msg: String) {
-        access { statusLine.value = msg }
+        access { bottomPanel.statusLine.value = msg }
         log.info(msg)
     }
 

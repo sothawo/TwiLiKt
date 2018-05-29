@@ -6,8 +6,8 @@ import com.vaadin.shared.ui.ContentMode
 import com.vaadin.ui.*
 import com.vaadin.ui.renderers.HtmlRenderer
 import com.vaadin.ui.renderers.ImageRenderer
+import com.vaadin.ui.themes.ValoTheme
 import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 import org.slf4j.LoggerFactory.getLogger
 
 /**
@@ -28,9 +28,9 @@ class UserPanel(private val user: User) : Panel() {
 }
 
 /**
- * [Panel] to display the friends and their list memeberships.
+ * [Panel] to display the friends and their list memberships.
  */
-class GridPanel : Panel() {
+class GridPanel(private val changeHandler: () -> Unit) : Panel() {
     private var gridData: GridData? = null
 
     private var grid = Grid<GridEntry>().apply {
@@ -44,7 +44,7 @@ class GridPanel : Panel() {
         setSizeFull()
     }
 
-    fun setupColumns() {
+    private fun setupColumns() {
         gridData?.let { data ->
             grid.addColumn({ it -> ExternalResource(it.user.profileImageUrl) }, ImageRenderer())
                     .apply {
@@ -56,12 +56,17 @@ class GridPanel : Panel() {
                         expandRatio = 1
                     }
 
-            var binder: Binder<GridEntry> = grid.editor.binder
+            val binder: Binder<GridEntry> = grid.editor.binder
 
             data.userLists.forEach { userList ->
                 val binding = binder.bind(CheckBox(),
                         { gridEntry -> data.isUserInList(gridEntry.user.id, userList.id) },
-                        { gridEntry, b -> data.setUserInList(gridEntry.user.id, userList.id, b) })
+                        { gridEntry, b ->
+                            run {
+                                data.setUserInList(gridEntry.user.id, userList.id, b)
+                                changeHandler()
+                            }
+                        })
 
                 grid.addColumn({ it -> data.isUserInList(it.user.id, userList.id) })
                         .apply {
@@ -93,17 +98,49 @@ class GridData(val users: List<User>, val userLists: List<UserList>) {
 
     fun setUserInList(userId: Long, listId: Long, flag: Boolean?) {
         log.debug("set user $userId to list $listId $flag")
+        flag?.let {
+            userListWithId(listId)?.userIds?.apply {
+                if (flag) {
+                    add(userId)
+                } else {
+                    remove(userId)
+                }
+            }
+        }
     }
 
-    fun userListWithId(id: Long): UserList? {
+    private fun userListWithId(id: Long): UserList? {
         return userLists.find { it.id == id }
     }
 
     companion object {
-        var log=  getLogger(javaClass.canonicalName)
+        var log: Logger = getLogger(GridData::class.java.canonicalName)
     }
 
 }
 
 data class GridEntry(val user: User)
 
+class BottomPanel(private val saveHandler: () -> Unit) : Panel() {
+
+    val statusLine = Label("Statuszeile")
+    val button = Button("Save") { _ ->
+        log.debug("save button clicked")
+        saveHandler()
+    }.apply {
+        isEnabled = false
+    }
+
+    init {
+        addStyleName(ValoTheme.PANEL_BORDERLESS)
+        content = HorizontalLayout().apply {
+            setSizeFull()
+            addComponents(statusLine, button)
+            setExpandRatio(statusLine, 1F)
+        }
+    }
+
+    companion object {
+        var log: Logger = getLogger(BottomPanel::class.java.canonicalName)
+    }
+}
