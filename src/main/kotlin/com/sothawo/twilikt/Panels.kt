@@ -84,6 +84,8 @@ class GridPanel(private val changeHandler: () -> Unit) : Panel() {
         setupColumns()
         grid.setItems(gridData.users.map(::GridEntry))
     }
+
+    fun currentUserLists(): List<UserList>? = gridData?.userLists
 }
 
 

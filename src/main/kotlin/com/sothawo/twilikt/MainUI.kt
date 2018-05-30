@@ -96,6 +96,12 @@ class MainUI(val twitterService: TwitterService) : UI() {
     private fun saveData() {
         bottomPanel.button.isEnabled = false
         showStatus("should save data")
+        try {
+            gridPanel.currentUserLists()?.forEach(twitterService::updateUserList)
+        } catch (e: Exception) {
+            notification("error saving user lists: ${e.message}", Notification.Type.ERROR_MESSAGE)
+        }
+        showStatus("finished updating lists")
     }
 
 
@@ -107,7 +113,7 @@ class MainUI(val twitterService: TwitterService) : UI() {
     }
 
     /**
-     * show the [msg] ins the [statusLine] and logs it. Uses the UI thread.
+     * show the [msg] ins the [bottomPanel] and logs it. Uses the UI thread.
      */
     fun showStatus(msg: String) {
         access { bottomPanel.statusLine.value = msg }

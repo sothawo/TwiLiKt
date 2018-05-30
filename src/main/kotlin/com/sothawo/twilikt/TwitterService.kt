@@ -130,6 +130,21 @@ class TwitterService(private val twitter: Twitter) {
         return users.map(User::id)
     }
 
+    /**
+     * try to update the given [userList] for the current user. Exceptions are passed out.
+     */
+    fun updateUserList(userList: UserList) {
+        val (elementsToAdd, elementsToDelete) = userList.snapshotDifferences()
+        log.debug("list: ${userList.name}, should add $elementsToAdd and should delete $elementsToDelete")
+
+        if (elementsToAdd.isNotEmpty())
+            twitter.createUserListMembers(userList.id, *elementsToAdd.toLongArray())
+
+        if (elementsToDelete.isNotEmpty())
+            twitter.destroyUserListMembers(userList.id, elementsToDelete.toLongArray())
+
+    }
+
     companion object {
         @Slf4jLogger
         lateinit var log: Logger
@@ -160,4 +175,19 @@ data class User(val id: Long, val screenName: String, val name: String, val prof
 
 fun User.htmlName() = "<b>$name</b> @$screenName"
 
-data class UserList(val id: Long, val name: String, val userIds: MutableList<Long>)
+data class UserList(val id: Long, val name: String, val userIds: MutableList<Long>) {
+    private val userIdsSnapshot: MutableList<Long> = userIds.toMutableList()
+    /**
+     * compares the actual [userIds] of the UserList to [userIdsSnapshot] list and returns two lists. The first with the
+     * elements to add, the second with the elements to remove from the snapshot list to get the current list. It also
+     * sets the content of the snapshot list to the actual list.
+     */
+    fun snapshotDifferences(): Pair<List<Long>, List<Long>> {
+        val elementsToDelete = userIdsSnapshot - userIds
+        val elementsToAdd = userIds - userIdsSnapshot
+        userIdsSnapshot.clear()
+        userIdsSnapshot.addAll(userIds)
+        return Pair(elementsToAdd, elementsToDelete)
+    }
+}
+

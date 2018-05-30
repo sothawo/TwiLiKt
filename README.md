@@ -2,7 +2,7 @@
 
 a small application to manage twitter user lists.
 
-**WIP everything still in progress and totally incomplete**
+written for internal purposes. If you like, check it out and see what it is.
 
 # twitter access
 
