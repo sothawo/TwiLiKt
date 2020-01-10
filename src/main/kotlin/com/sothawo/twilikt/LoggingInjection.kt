@@ -32,34 +32,29 @@ annotation class Slf4jLogger
 @SpringComponent
 class LoggingInjector : BeanPostProcessor {
 
-    override fun postProcessBeforeInitialization(bean: Any, beanName: String): Any? {
-        try {
-            bean.let {
-                val loggerName = it::class.java.canonicalName
-                if (loggerName != null) {
+    override fun postProcessBeforeInitialization(bean: Any, beanName: String): Any? =
+        bean.also {
+            try {
+                val loggerName = it::class.java.canonicalName!!
+                processObject(it, loggerName)
+                it::class.companionObjectInstance?.let {
                     processObject(it, loggerName)
-                    it::class.companionObjectInstance?.let {
-                        processObject(it, loggerName)
-                    }
                 }
+            } catch (ignored: Throwable) {
+                // ignore exceptions, keep the object as it is. not every required class may be found on the classpath as
+                // SpringBoot tries to load notexisting stuff as well
             }
-        } catch (ignored: Error) {
-            // ignore exceptions, keep the object as it is. not every required class may be found on the classpath as
-            // SpringBoot tries to load notexisting stuff as well
         }
-
-        return bean
-    }
 
     private fun processObject(target: Any, loggerName: String) {
         target::class.declaredMemberProperties.forEach { property ->
             property.annotations
-                    .filter { it is Slf4jLogger }
-                    .forEach {
-                        if (property is KMutableProperty<*>) {
-                            property.setter.call(target, LoggerFactory.getLogger(loggerName))
-                        }
+                .filter { it is Slf4jLogger }
+                .forEach {
+                    if (property is KMutableProperty<*>) {
+                        property.setter.call(target, LoggerFactory.getLogger(loggerName))
                     }
+                }
         }
     }
 }

@@ -54,7 +54,7 @@ internal class TwitterServiceTest {
 
         @Test
         fun `returns the current user`() {
-            assertThat(twitterService.currentUser()).isEqualTo(user)
+            assertThat(twitterService.currentUser).isEqualTo(user)
             verify(twitter4j).showUser(user.id)
         }
 

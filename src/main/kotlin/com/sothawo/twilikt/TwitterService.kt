@@ -35,11 +35,11 @@ class TwitterConfiguration {
     var oauthAccessTokenSecret = "not set"
     override fun toString(): String {
         return "TwitterConfiguration(" +
-                "oauthConsumerKey='$oauthConsumerKey'," +
-                "oauthConsumerSecret='$oauthConsumerSecret'," +
-                "oauthAccessToken='$oauthAccessToken'," +
-                "oauthAccessTokenSecret='$oauthAccessTokenSecret'," +
-                ")"
+            "oauthConsumerKey='$oauthConsumerKey'," +
+            "oauthConsumerSecret='$oauthConsumerSecret'," +
+            "oauthAccessToken='$oauthAccessToken'," +
+            "oauthAccessTokenSecret='$oauthAccessTokenSecret'," +
+            ")"
     }
 
 }
@@ -51,7 +51,7 @@ class TwitterConfiguration {
 @Service
 class TwitterService(private val twitter: Twitter) {
 
-    fun currentUser(): User = userWithId(twitter.id).also { log.debug("current user: $it") }
+    val currentUser: User by lazy { userWithId(twitter.id).also { log.debug("current user: $it") } }
 
     fun userWithId(id: Long): User {
         log.debug("retrieving user with id $id...")
@@ -72,12 +72,12 @@ class TwitterService(private val twitter: Twitter) {
         do {
             try {
                 twitter.getFriendsList(user.id, cursor, 200)
-                        .apply {
-                            toList().filterNotNull()
-                                    .forEach { friends += User(it.id, it.screenName, it.name, it.profileImageURLHttps) }
-                            cursor = nextCursor
-                            keepGoing = hasNext()
-                        }
+                    .apply {
+                        toList().filterNotNull()
+                            .forEach { friends += User(it.id, it.screenName, it.name, it.profileImageURLHttps) }
+                        cursor = nextCursor
+                        keepGoing = hasNext()
+                    }
             } catch (e: Exception) {
                 log.warn("error retrieving friends for user $user", e)
                 keepGoing = false
@@ -93,10 +93,10 @@ class TwitterService(private val twitter: Twitter) {
         log.debug("retrieving lists for @${user.screenName}")
         return try {
             twitter.getUserLists(user.id)
-                    .toList().filterNotNull()
-                    .map { it: twitter4j.UserList ->
-                        UserList(it.id, it.name, loadUserIdsForList(it.id).toMutableList())
-                    }
+                .toList().filterNotNull()
+                .map { it: twitter4j.UserList ->
+                    UserList(it.id, it.name, loadUserIdsForList(it.id).toMutableList())
+                }
         } catch (ex: Exception) {
             log.warn("could not load user lists for $user", ex)
             emptyList()
@@ -113,12 +113,12 @@ class TwitterService(private val twitter: Twitter) {
         do {
             try {
                 twitter.getUserListMembers(listId, 5_000, cursor)
-                        .apply {
-                            toList().filterNotNull()
-                                    .forEach { users += User(it.id, it.screenName, it.name, it.profileImageURLHttps) }
-                            cursor = nextCursor
-                            keepGoing = hasNext()
-                        }
+                    .apply {
+                        toList().filterNotNull()
+                            .forEach { users += User(it.id, it.screenName, it.name, it.profileImageURLHttps) }
+                        cursor = nextCursor
+                        keepGoing = hasNext()
+                    }
 
             } catch (e: Exception) {
                 log.warn("error getting users for list id $listId", e)
@@ -159,12 +159,12 @@ class TwitterProvider(private val config: TwitterConfiguration) {
     @Bean
     fun realTwitter(): Twitter {
         return TwitterFactory(ConfigurationBuilder()
-                .setDebugEnabled(false)
-                .setOAuthConsumerKey(config.oauthConsumerKey)
-                .setOAuthConsumerSecret(config.oauthConsumerSecret)
-                .setOAuthAccessToken(config.oauthAccessToken)
-                .setOAuthAccessTokenSecret(config.oauthAccessTokenSecret)
-                .build()).instance
+            .setDebugEnabled(false)
+            .setOAuthConsumerKey(config.oauthConsumerKey)
+            .setOAuthConsumerSecret(config.oauthConsumerSecret)
+            .setOAuthAccessToken(config.oauthAccessToken)
+            .setOAuthAccessTokenSecret(config.oauthAccessTokenSecret)
+            .build()).instance
     }
 }
 

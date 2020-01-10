@@ -22,8 +22,8 @@ import com.vaadin.ui.Label
 import com.vaadin.ui.Notification
 import com.vaadin.ui.UI
 import com.vaadin.ui.VerticalLayout
-import kotlinx.coroutines.experimental.async
-import kotlinx.coroutines.experimental.runBlocking
+import kotlinx.coroutines.async
+import kotlinx.coroutines.runBlocking
 import org.slf4j.Logger
 
 /**
@@ -43,11 +43,11 @@ class MainUI(val twitterService: TwitterService) : UI() {
             setSizeFull()
 
             val userPanel =
-                    try {
-                        UserPanel(twitterService.currentUser())
-                    } catch (e: Exception) {
-                        Label("could not retrieve user: ${e.message}")
-                    }
+                try {
+                    UserPanel(twitterService.currentUser)
+                } catch (e: Exception) {
+                    Label("could not retrieve user: ${e.message}")
+                }
 
             addComponents(userPanel, gridPanel, bottomPanel)
             setExpandRatio(gridPanel, 1F)
@@ -66,7 +66,7 @@ class MainUI(val twitterService: TwitterService) : UI() {
         // load the friends
         val friendsJob = async {
             try {
-                val friends = twitterService.loadFriends(twitterService.currentUser())
+                val friends = twitterService.loadFriends(twitterService.currentUser)
                 log.info("loaded ${friends.size} friends")
                 friends
             } catch (e: Exception) {
@@ -78,7 +78,7 @@ class MainUI(val twitterService: TwitterService) : UI() {
         // load the users's lists
         val listsJob = async {
             try {
-                val userLists = twitterService.loadUserLists(twitterService.currentUser())
+                val userLists = twitterService.loadUserLists(twitterService.currentUser)
                 log.info("loaded ${userLists.size} lists")
                 userLists
             } catch (e: Exception) {
