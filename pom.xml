@@ -25,7 +25,7 @@
         <java.version>1.8</java.version>
         <kotlin.version>1.3.61</kotlin.version>
         <kotlin.coroutines.version>1.3.3</kotlin.coroutines.version>
-        <vaadin.version>8.4.1</vaadin.version>
+        <vaadin.version>8.12.3</vaadin.version>
         <junit.version>5.0.2</junit.version>
         <twitter4j.version>4.0.7</twitter4j.version>
     </properties>
